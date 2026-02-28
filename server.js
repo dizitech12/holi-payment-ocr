@@ -4,7 +4,10 @@ import multer from "multer";
 import Tesseract from "tesseract.js";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST"],
+}));
 
 // memory storage (important for deployment later)
 const upload = multer({ storage: multer.memoryStorage() });
@@ -61,3 +64,4 @@ app.post("/verify-payment", upload.single("file"), async (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => console.log("Server running on port", PORT));
+
