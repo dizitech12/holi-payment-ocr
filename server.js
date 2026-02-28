@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import multer from "multer";
+import fetch from "node-fetch";
 
 const app = express();
 app.use(cors({ origin: "*", methods: ["GET", "POST"] }));
@@ -48,4 +49,18 @@ app.post("/verify-payment", upload.single("file"), async (req, res) => {
 });
 
 const PORT = process.env.PORT;
-app.listen(PORT, "0.0.0.0", () => console.log("LIVE on", PORT));
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("LIVE on", PORT);
+
+  // keep railway awake
+  const url = process.env.RAILWAY_STATIC_URL
+    ? `https://${process.env.RAILWAY_STATIC_URL}`
+    : null;
+
+  if (url) {
+    setInterval(() => {
+      fetch(url).catch(() => {});
+    }, 25000); // every 25 sec
+  }
+});
+
