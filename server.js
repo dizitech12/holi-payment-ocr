@@ -43,5 +43,5 @@ app.post("/verify-payment", upload.single("file"), async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, "0.0.0.0", () => console.log("Server ready on port", PORT));
+const PORT = process.env.PORT;
+app.listen(PORT, "0.0.0.0", () => console.log("Server running on", PORT));
