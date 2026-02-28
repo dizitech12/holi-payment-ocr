@@ -1,26 +1,25 @@
 import express from "express";
 import cors from "cors";
 import multer from "multer";
-import Tesseract from "tesseract.js";
 
 const app = express();
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST"],
-}));
-
+app.use(cors({ origin: "*", methods: ["GET", "POST"] }));
 const upload = multer({ storage: multer.memoryStorage() });
 
+/* ---- HEALTH CHECK (Railway needs fast response) ---- */
 app.get("/", (req, res) => {
-  res.send("OCR server alive");
+  res.status(200).send("alive");
 });
 
+/* ---- OCR ROUTE ---- */
 app.post("/verify-payment", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) return res.json({ status: "rejected" });
 
-    // OCR RUNS ONLY WHEN REQUEST COMES
+    // Import tesseract ONLY when needed (prevents startup crash)
+    const Tesseract = (await import("tesseract.js")).default;
+
     const result = await Tesseract.recognize(req.file.buffer, "eng");
     const detected = result.data.text.toLowerCase();
 
@@ -36,8 +35,7 @@ app.post("/verify-payment", upload.single("file"), async (req, res) => {
 
     console.log("SCORE:", score);
 
-    if (score >= 3) res.json({ status: "accepted" });
-    else res.json({ status: "rejected" });
+    res.json({ status: score >= 3 ? "accepted" : "rejected" });
 
   } catch (err) {
     console.error(err);
@@ -46,4 +44,4 @@ app.post("/verify-payment", upload.single("file"), async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log("Server running on port", PORT));
+app.listen(PORT, "0.0.0.0", () => console.log("Server ready on port", PORT));
